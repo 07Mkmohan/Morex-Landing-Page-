@@ -18,6 +18,8 @@ export const subscriptionDurationEnum = pgEnum("subscription_duration", [
   "1year",
 ]);
 export const accountStatusEnum = pgEnum("account_status", [
+  "pending_payment",
+  "pending_approval",
   "active",
   "disabled",
 ]);
@@ -36,11 +38,15 @@ export const users = pgTable("users", {
   // New subscription fields
   domain: text("domain"),
   numberOfUsers: integer("number_of_users").default(1),
-  planType: planTypeEnum("plan_type").default("basic"),
+  planType: planTypeEnum("plan_type"),
+
   subscriptionDuration: subscriptionDurationEnum(
     "subscription_duration",
   ).default("monthly"),
-  accountStatus: accountStatusEnum("account_status").default("active"),
+  accountStatus: accountStatusEnum("account_status")
+    .default("pending_payment")
+    .notNull(),
+
   renewalDate: timestamp("renewal_date", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })

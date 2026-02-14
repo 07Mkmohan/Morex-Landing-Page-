@@ -4,16 +4,17 @@ import crypto from "crypto";
 import { config } from "../config/env";
 import { authenticate, AuthenticatedRequest } from "../middleware/auth";
 import { z } from "zod";
+import { db } from "../db";
+import { users } from "../db/schema";
+import { eq } from "drizzle-orm";
 
 const router = Router();
 
-// Initialize Razorpay instance
 const razorpay = new Razorpay({
   key_id: config.razorpayKeyId,
   key_secret: config.razorpayKeySecret,
 });
 
-// Pricing defined BEFORE usage
 const pricing = {
   basic: {
     monthly: 999,
@@ -34,18 +35,14 @@ const createOrderSchema = z.object({
   period: z.enum(["monthly", "quarterly", "6months", "1year"]),
 });
 
-// Create Razorpay order
 router.post(
   "/create-order",
   authenticate,
   async (req: AuthenticatedRequest, res) => {
     try {
-      const body = createOrderSchema.parse(req.body);
-      const { planType, period } = body;
+      const { planType, period } = createOrderSchema.parse(req.body);
 
       const amount = pricing[planType][period];
-
-      // Convert to paise
       const amountInPaise = amount * 100;
 
       const order = await razorpay.orders.create({
@@ -55,7 +52,7 @@ router.post(
         notes: {
           planType,
           period,
-          userId: req.user?.userId?.toString() || "",
+          userId: req.user!.userId.toString(),
         },
       });
 
@@ -66,7 +63,6 @@ router.post(
         keyId: config.razorpayKeyId,
       });
     } catch (error: any) {
-      console.error("Error creating order:", error);
       return res.status(400).json({
         message: error?.message || "Failed to create order",
       });
@@ -74,19 +70,21 @@ router.post(
   },
 );
 
-// Verify payment
 router.post(
   "/verify-payment",
   authenticate,
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { razorpayOrderId, razorpayPaymentId, razorpaySignature } =
-        req.body;
+      const {
+        razorpayOrderId,
+        razorpayPaymentId,
+        razorpaySignature,
+        planType,
+        period,
+      } = req.body;
 
       if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
-        return res
-          .status(400)
-          .json({ message: "Missing payment verification details" });
+        return res.status(400).json({ message: "Missing details" });
       }
 
       const payload = `${razorpayOrderId}|${razorpayPaymentId}`;
@@ -103,12 +101,30 @@ router.post(
         });
       }
 
+      // calculate renewal date
+      const now = new Date();
+      const renewalDate = new Date(now);
+
+      if (period === "monthly") renewalDate.setMonth(now.getMonth() + 1);
+      if (period === "quarterly") renewalDate.setMonth(now.getMonth() + 3);
+      if (period === "6months") renewalDate.setMonth(now.getMonth() + 6);
+      if (period === "1year") renewalDate.setFullYear(now.getFullYear() + 1);
+
+      await db
+        .update(users)
+        .set({
+          planType,
+          subscriptionDuration: period,
+          renewalDate,
+          accountStatus: "pending_approval",
+        })
+        .where(eq(users.id, req.user!.userId));
+
       return res.json({
         success: true,
         message: "Payment verified successfully",
       });
     } catch (error: any) {
-      console.error("Error verifying payment:", error);
       return res.status(400).json({
         message: error?.message || "Failed to verify payment",
       });

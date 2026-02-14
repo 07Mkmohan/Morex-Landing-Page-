@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthContext } from "../context/AuthContext";
 
 const problems = [
   {
@@ -253,6 +254,48 @@ const pricingPlans = [
 ];
 
 const Landing = () => {
+  const navigate = useNavigate();
+  const { user, token } = useAuthContext();
+
+  // Handle Buy Now button click - check auth status and redirect appropriately
+  const handleBuyNow = (planName: string, periodLabel: string) => {
+    const periodMap: Record<string, string> = {
+      "/month": "monthly",
+      "/6month": "6months",
+      "/1Year": "1year",
+    };
+
+    const period = periodMap[periodLabel];
+    const planType = planName.toLowerCase();
+
+    if (!period) {
+      console.error("Invalid period selected");
+      return;
+    }
+
+    if (!token || !user) {
+      navigate("/register");
+      return;
+    }
+
+    if (user.accountStatus === "pending_payment") {
+      navigate("/payment", {
+        state: { planType, period },
+      });
+      return;
+    }
+
+    if (user.accountStatus === "pending_approval") {
+      alert("Payment received. Admin will contact you soon.");
+      return;
+    }
+
+    if (user.accountStatus === "active") {
+      navigate("/admin-dashboard");
+      return;
+    }
+  };
+
   return (
     <div className="landing">
       <section className="hero">
@@ -379,13 +422,14 @@ const Landing = () => {
                   <span className="price-amount">{plan.price}</span>
                   <span className="price-period">{plan.period}</span>
                 </div>
-                <Link
+                <button
                   className={`btn ${plan.highlight ? "primary" : "ghost"}`}
-                  to="/register"
+                  onClick={() => handleBuyNow(plan.name, plan.period)}
                   style={{ width: "100%", textAlign: "center" }}
                 >
                   Buy Now
-                </Link>
+                </button>
+
                 <div className="pricing-features">
                   <p className="features-title">What's included:</p>
                   <ul className="features-list">
@@ -421,13 +465,14 @@ const Landing = () => {
                   <span className="price-amount">{plan.price}</span>
                   <span className="price-period">{plan.period}</span>
                 </div>
-                <Link
+                <button
                   className={`btn ${plan.highlight ? "primary" : "ghost"}`}
-                  to="/register"
+                  onClick={() => handleBuyNow(plan.name, plan.period)}
                   style={{ width: "100%", textAlign: "center" }}
                 >
                   Buy Now
-                </Link>
+                </button>
+
                 <div className="pricing-features">
                   <p className="features-title">What's included:</p>
                   <ul className="features-list">
@@ -487,24 +532,7 @@ const Landing = () => {
               </li>
             </ul>
           </div>
-          {/* <div className="footer-section">
-            <h4>Legal</h4>
-            <ul>
-              <li><a href="/">Privacy</a></li>
-              <li><a href="/">Terms</a></li>
-              <li><a href="/">Cookies</a></li>
-              <li><a href="/">License</a></li>
-            </ul>
-          </div> */}
         </div>
-        {/* <div className="footer-bottom">
-          <p>&copy; 2025 PaintOS. All rights reserved.</p>
-          <div className="footer-socials">
-            <a href="/">Twitter</a>
-            <a href="/">LinkedIn</a>
-            <a href="/">GitHub</a>
-          </div>
-        </div> */}
       </footer>
     </div>
   );

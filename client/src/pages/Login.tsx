@@ -1,82 +1,78 @@
-import { type FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { useAuthContext } from "../context/AuthContext";
+import "../App.css";
 
 const Login = () => {
+  const { login } = useAuthContext();
   const navigate = useNavigate();
-  const { login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // 🔁 If already logged in → go to admin
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      navigate("/admin-dashboard", { replace: true });
-    }
-  }, [navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      await login(email, password);
+      const user = await login(email, password);
 
-      // ✅ Always go to admin dashboard after login
-      navigate("/admin-dashboard", { replace: true });
-    } catch (err) {
-      console.error("Login error", err);
+      if (user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/payment");
+      }
+    } catch (error) {
+      console.error("Login error", error);
+      alert("Invalid credentials");
     } finally {
       setLoading(false);
     }
   };
-
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-header">
-          <div className="brand-mark">🚀</div>
-          <div className="auth-title">
-            <h2>Welcome Login</h2>
-          </div>
+    <div className="login-wrapper">
+      <div className="login-container">
+        <div className="login-left">
+          <h1>PaintTrack</h1>
+          <p>Manage your paint factory operations efficiently and securely.</p>
         </div>
 
-        <p className="lede">Sign in to your PaintOS account</p>
+        <div className="login-card">
+          <h2>Sign in to your account</h2>
 
-        <form onSubmit={handleSubmit} className="form">
-          <label>
-            Email
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@morex.com"
-              required
-            />
-          </label>
+          <form onSubmit={handleSubmit}>
+            <div className="form-field">
+              <label>Email</label>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-          <label>
-            Password
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-            />
-          </label>
+            <div className="form-field">
+              <label>Password</label>
+              <input
+                type="password"
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
 
-          <button type="submit" className="btn primary" disabled={loading}>
-            {loading ? "Signing in…" : "Sign in"}
-          </button>
-        </form>
+            <button type="submit" disabled={loading}>
+              {loading ? "Signing in..." : "Sign In"}
+            </button>
+          </form>
 
-        <p className="hint">
-          New here? <Link to="/register">Create an account</Link>
-        </p>
+          <div className="login-bottom">
+            Don’t have an account? <Link to="/register">Register</Link>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -23,7 +23,7 @@ export const paymentService = {
    * Create a Razorpay order
    */
   async createOrder(params: CreateOrderParams): Promise<CreateOrderResponse> {
-    const { data } = await api.post("/payment/create-order", params);
+    const { data } = await api.post("/payments/create-order", params);
     return data;
   },
 
@@ -35,7 +35,7 @@ export const paymentService = {
     razorpayPaymentId: string,
     razorpaySignature: string,
   ): Promise<VerifyPaymentResponse> {
-    const { data } = await api.post("/payment/verify-payment", {
+    const { data } = await api.post("/payments/verify-payment", {
       razorpayOrderId,
       razorpayPaymentId,
       razorpaySignature,

@@ -1,7 +1,15 @@
-export type Role = 'admin' | 'user';
-export type PlanType = 'basic' | 'pro';
-export type SubscriptionDuration = 'monthly' | 'quarterly' | '6months' | '1year';
-export type AccountStatus = 'active' | 'disabled';
+export type Role = "admin" | "user";
+export type PlanType = "basic" | "pro";
+export type SubscriptionDuration =
+  | "monthly"
+  | "quarterly"
+  | "6months"
+  | "1year";
+export type AccountStatus =
+  | "pending_payment"
+  | "pending_approval"
+  | "active"
+  | "disabled";
 
 export interface User {
   id: number;
@@ -17,6 +25,6 @@ export interface User {
   numberOfUsers?: number;
   planType?: PlanType;
   subscriptionDuration?: SubscriptionDuration;
-  accountStatus?: AccountStatus;
+  accountStatus: AccountStatus;
   renewalDate?: string;
 }

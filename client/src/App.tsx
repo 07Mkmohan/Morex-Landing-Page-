@@ -9,9 +9,12 @@ import Register from "./pages/Register";
 import About from "./pages/About";
 import Careers from "./pages/Careers";
 import Payment from "./pages/Payment";
+import { useAuthContext } from "./context/AuthContext";
 
 function App() {
-  const token = localStorage.getItem("token");
+  const { token, loading } = useAuthContext();
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className="app-shell">
@@ -20,25 +23,26 @@ function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
 
-          {/* Redirect logged-in users away from login */}
           <Route
             path="/login"
-            element={token ? <Navigate to="/admin" replace /> : <Login />}
+            element={token ? <Navigate to="/payment" replace /> : <Login />}
           />
+
+          <Route
+            path="/register"
+            element={token ? <Navigate to="/payment" replace /> : <Register />}
+          />
+
           <Route
             path="/payment"
             element={token ? <Payment /> : <Navigate to="/login" replace />}
           />
+
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
-          <Route
-            path="/register"
-            element={token ? <Navigate to="/admin" replace /> : <Register />}
-          />
 
           <Route path="/about" element={<About />} />
           <Route path="/careers" element={<Careers />} />
 
-          {/* 🔐 Admin Protected Route */}
           <Route
             path="/admin"
             element={
@@ -48,7 +52,6 @@ function App() {
             }
           />
 
-          {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
