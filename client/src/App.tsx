@@ -10,6 +10,7 @@ import About from "./pages/About";
 import Careers from "./pages/Careers";
 import Payment from "./pages/Payment";
 import { useAuthContext } from "./context/AuthContext";
+import RegisteredUser from "./pages/RegisteredUser";
 
 function App() {
   const { token, loading } = useAuthContext();
@@ -36,6 +37,15 @@ function App() {
           <Route
             path="/payment"
             element={token ? <Payment /> : <Navigate to="/login" replace />}
+          />
+
+          <Route
+            path="/registered-users"
+            element={
+              <ProtectedRoute role="admin">
+                <RegisteredUser />
+              </ProtectedRoute>
+            }
           />
 
           <Route path="/admin-dashboard" element={<AdminDashboard />} />

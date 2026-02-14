@@ -145,7 +145,7 @@ const Payment = () => {
             </div>
 
             <div className="summary-row">
-              <span>Duration</span>
+              <span>Duration : </span>
               <span>{PRICING[selectedPlan][selectedPeriod].label}</span>
             </div>
 
