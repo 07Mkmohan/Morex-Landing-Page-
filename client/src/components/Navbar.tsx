@@ -9,7 +9,7 @@ const Navbar = () => {
   const isActive = (path: string) => (pathname === path ? 'nav-link active' : 'nav-link');
 
   return (
-    <header className="navbar"> 
+    <header className="navbar">
       <Link to="/" className="brand">
         <img src={heroImage} alt="Smart Paint Factory ERP System" className="brand-logo" width={42} height={42} />
         <div>
@@ -25,18 +25,22 @@ const Navbar = () => {
         <a className="nav-link" href="#features">
           Features
         </a>
-         <Link className={isActive('/about')} to="/about">
+        <Link className={isActive('/about')} to="/about">
           About
         </Link>
         <a className="nav-link" href="#pricing">
           Pricing
         </a>
-       
-        {user?.role === 'admin' && (
-          <Link className={isActive('/admin')} to="/admin">
-            Admin
+
+        {user?.role === 'admin' ? (
+          <Link className={isActive('/admin-dashboard')} to="/admin-dashboard">
+            Admin Dashboard
           </Link>
-        )}
+        ) : user?.role === 'user' ? (
+          <Link className={isActive('/user-dashboard')} to="/user-dashboard">
+            My Dashboard
+          </Link>
+        ) : null}
       </nav>
 
       <div className="nav-actions">

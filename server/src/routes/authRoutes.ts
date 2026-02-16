@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Request, Response, Router } from "express";
 import { z } from "zod";
 import {
   authenticateUser,
@@ -24,12 +24,12 @@ const loginSchema = z.object({
   password: z.string().min(6),
 });
 
-const sanitizeUser = (user: { password?: string; [key: string]: unknown }) => {
+const sanitizeUser = (user: { password?: string;[key: string]: unknown }) => {
   const { password, ...rest } = user;
   return rest;
 };
 
-router.post("/register", async (req, res) => {
+router.post("/register", async (req: Request, res: Response) => {
   try {
     const body = registerSchema.parse(req.body);
 
@@ -52,7 +52,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", async (req: Request, res: Response) => {
   try {
     const body = loginSchema.parse(req.body);
     const user = await authenticateUser(body.email, body.password);
@@ -73,7 +73,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get("/me", authenticate, async (req: AuthenticatedRequest, res) => {
+router.get("/me", authenticate, async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }

@@ -3,6 +3,7 @@ import "./App.css";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminDashboard from "./pages/AdminDashboard";
+import UserDashboard from "./pages/UserDashboard";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -48,7 +49,30 @@ function App() {
             }
           />
 
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/user-dashboard"
+            element={
+              <ProtectedRoute role="user">
+                <UserDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardRedirect />
+              </ProtectedRoute>
+            }
+          />
 
           <Route path="/about" element={<About />} />
           <Route path="/careers" element={<Careers />} />
@@ -67,6 +91,12 @@ function App() {
       </main>
     </div>
   );
+}
+
+function DashboardRedirect() {
+  const { user } = useAuthContext();
+  if (user?.role === "admin") return <Navigate to="/admin-dashboard" replace />;
+  return <Navigate to="/user-dashboard" replace />;
 }
 
 export default App;

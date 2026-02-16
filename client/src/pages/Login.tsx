@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthContext } from "../context/AuthContext";
 import "../App.css";
@@ -16,13 +16,8 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const user = await login(email, password);
-
-      if (user.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/payment");
-      }
+      await login(email, password);
+      navigate("/dashboard");
     } catch (error) {
       console.error("Login error", error);
       alert("Invalid credentials");
